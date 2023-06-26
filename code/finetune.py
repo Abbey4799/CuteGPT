@@ -67,8 +67,10 @@ if __name__ == "__main__":
 
     if 'Ids' in args.dataset_type:
         # preprocessed data
+        assert('llama_ift_data_ids.pkl' in args.data_path)
         datas = pickle.load(open(args.data_path, "rb"))
     else:
+        assert('llama_ift_data_ids.pkl' not in args.data_path)
         datas = get_multiround_data(args.data_path,torch.distributed.get_rank(), max_training_samples=args.max_training_samples)
 
     train_dataset = eval(f"{args.dataset_type}")(

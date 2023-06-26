@@ -48,30 +48,40 @@ print(random.sample(datas,3))
 
 ### 微调代码
 
-预处理数据，将数据拼接成多轮对话的格式
+预处理数据，将数据拼接成多轮对话的格式，并编码得到 `input_ids`
 
 ```bash
 python code/convert_data.py \
-	tokenizer ziqingyang/chinese-llama-lora-7b \
-	max_length 2048 \
-	out_data_path data/test/
+	--tokenizer ziqingyang/chinese-llama-lora-7b \
+	--max_length 2048 \
+	--out_data_path data/test/
 ```
 
 训练模型
 
 ```bash
-CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 deepspeed lora_llama_flashattn.py \
-    --master_port 12932 \
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 deepspeed --master_port 12932 code/finetune.py \
     --save_steps 2000 \
-    --max_epoches 5 \
-    --save_name llama_lora_623v1 \
-    --model_path /data/xuyipei/my_llama/my_llama_13b/llama_13b_112/ \
-    --dataset_type DatasetIds_HQY \
-    --data_path ../weighted_dataset/623v1/llama_ift_data_ids.pkl \
+    --max_epoches 4 \
+    --save_name llama_lora \
+    --model_path XuYipei/kw-cutegpt-13b-base \
+    --dataset_type DatasetIds \
+    --data_path data/test/llama_ift_data_ids.pkl \
     --max_length 2048 \
     --use_flash_attention
 ```
 
 参数说明
 
-- `dataset_type`：
+- `model_path`：`base`模型的路径
+- `dataset_type`：封装数据的 `dataset`类定义，在 `code/dataset.py`中定义
+- `use_flash_attention`：是否使用flash attention加快训练、减少显存消耗
+- `load_lora`：是否读取lora checkpoint继续训练。如果 `load_lora==True`，在 `load_lora_path`中定义lora checkpoint的路径
+
+具体的 deepspeed 参数（例如 ` learning rate`、` batch size`）以及   `lora `参数（例如 ` lora rank`）见  ` code/config.py`
+
+可以直接运行以下指令：
+
+```python
+bash finetune.sh
+```

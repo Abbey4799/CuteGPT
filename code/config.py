@@ -36,7 +36,7 @@ DS_CONFIG = {
         "stage3_gather_16bit_weights_on_model_save": True
     },
     "gradient_accumulation_steps": 8,
-    "train_micro_batch_size_per_gpu": 3,
+    "train_micro_batch_size_per_gpu": 2,
     "wall_clock_breakdown": False
 }
 
