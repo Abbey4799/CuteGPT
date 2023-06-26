@@ -1,0 +1,6 @@
+torch==1.13.1+cu117
+torchvision==0.13.1+cu116
+transformers==4.28.0
+peft==0.3.0
+deepspeed==0.8.3
+flash_attn==0.2.8
