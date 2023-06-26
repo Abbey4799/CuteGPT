@@ -58,7 +58,6 @@ model = LlamaForCausalLM.from_pretrained(
 model.eval()
 model = PeftModel.from_pretrained(model, LORA_WEIGHTS)
 device = torch.device("cuda")
-
 ```
 
 - 推理
