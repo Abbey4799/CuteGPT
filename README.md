@@ -3,7 +3,7 @@
 
 [[Readme ENG](README.md)][[Readme ZH](README_ch.md)]
 
-CuteGPT is an open-source conversational language model that supports both Chinese and English, developed by [Fudan University Knowledge Workshop Laboratory](http://kw.fudan.edu.cn/). It is based on the original Llama with improvements and extensions, and has a scale of 13B (13 billion) parameters. It can perform int8 precision inference on a single 3090 graphics card. CuteGPT expands the Chinese vocabulary and performs secondary pre-training on the original Llama, improving its ability to understand Chinese. Subsequently, it is fine-tuned with conversational instructions to enhance the model's ability to understand instructions.
+CuteGPT is an open-source conversational language model that supports both Chinese and English, developed by [Fudan University Knowledge Workshop Laboratory](http://kw.fudan.edu.cn/). It is based on the original Llama model structure, and has a scale of 13B (13 billion) parameters. It can perform int8 precision inference on a single 3090 graphics card. CuteGPT expands the Chinese vocabulary and performs pre-training on the Llama model, improving its ability to understand Chinese. Subsequently, it is fine-tuned with conversational instructions to enhance the model's ability to understand instructions.
 
 ## Open Parameters
 
