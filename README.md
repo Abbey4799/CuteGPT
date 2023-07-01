@@ -8,7 +8,7 @@ CuteGPT is an open-source conversational language model that supports both Chine
 
 | Huggingface                       | Description                                                                              |
 | --------------------------------- | ---------------------------------------------------------------------------------------- |
-| XuYipei/kw-cutegpt-13b-base       | Expand Chinese vocabulary and perform secondary pre-training based on the original Llama |
+| XuYipei/kw-cutegpt-13b-base       | Expand Chinese vocabulary and perform pre-training                              |
 | XuYipei/kw-cutegpt-13b-ift        | Full parameter instruction fine-tuning                                                   |
 | Abbey4799/kw-cutegpt-13b-ift-lora | Instruction fine-tuning based on lora                                                    |
 
