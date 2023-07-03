@@ -11,6 +11,7 @@ CuteGPT is an open-source conversational language model that supports both Chine
 Based on the KW-CuteGPT-7b version, KW-CuteGPT-13b has improved accuracy in knowledge, understanding of complex instructions, ability to comprehend long texts, reasoning ability, faithful question answering, and other capabilities. Currently, the KW-CuteGPT-13b version model outperforms the majority of models of similar scale in certain evaluation tasks.
 
 ## Open Parameters
+We have open-sourced the following versions of the parameters:
 
 | Huggingface                       | Description                                        |
 | --------------------------------- | -------------------------------------------------- |
@@ -19,6 +20,7 @@ Based on the KW-CuteGPT-7b version, KW-CuteGPT-13b has improved accuracy in know
 | Abbey4799/kw-cutegpt-13b-ift-lora | Instruction fine-tuning based on lora              |
 
 ## Evaluation
+We selected a subset of typical Chinese-English datasets for evaluation, and the following are the evaluation results of the CuteGPT model on [C-eval](https://github.com/SJTU-LIT/ceval) and [XieZhi](https://github.com/MikeGu721/XiezhiBenchmark).
 
 ### C-eval [[Code](https://github.com/SJTU-LIT/ceval)]
 
@@ -77,7 +79,7 @@ Based on the KW-CuteGPT-7b version, KW-CuteGPT-13b has improved accuracy in know
 
 ### XieZhi [[Code](https://github.com/MikeGu721/XiezhiBenchmark)]
 
-[Xiezhi (獬豸) by the team of Xiaoyang Xiao at Fudan University](https://arxiv.org/abs/2306.05783) is a domain evaluation benchmark for Language Models (LMs). It consists of 249587 multi-choice questions spanning 516 different disciplines and three different levels of granularity. The discipline classification and all first-level disciplines are shown in the figure below, with the number of second-level disciplines within each first-level discipline indicated in parentheses.
+[Xiezhi (獬豸) by the team of Yanghua Xiao at Fudan University](https://arxiv.org/abs/2306.05783) is a domain evaluation benchmark for Language Models (LMs). It consists of 249587 multi-choice questions spanning 516 different disciplines and three different levels of granularity. The discipline classification and all first-level disciplines are shown in the figure below, with the number of second-level disciplines within each first-level discipline indicated in parentheses.
 
 | Models                         | MMLU            | MMLU            | MMLU       | C-Eval          | C-Eval          | C-Eval          | M3KE            | Xiezhi-Spec.-Chinese | Xiezhi-Spec.-Chinese | Xiezhi-Spec.-Chinese | Xiezhi-Inter.-Chinese | Xiezhi-Inter.-Chinese | Xiezhi-Inter.-Chinese | Xiezhi-Spec.-English`` | Xiezhi-Spec.-English`` | Xiezhi-Spec.-English`` | Xiezhi-Inter.-English | Xiezhi-Inter.-English | Xiezhi-Inter.-English |
 | ------------------------------ | --------------- | --------------- | ---------- | --------------- | --------------- | --------------- | --------------- | -------------------- | -------------------- | -------------------- | --------------------- | --------------------- | --------------------- | ---------------------- | ---------------------- | ---------------------- | --------------------- | --------------------- | --------------------- |

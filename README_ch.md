@@ -11,6 +11,7 @@ CuteGPT是[复旦大学知识工场实验室](http://kw.fudan.edu.cn/)推出的�
 在KW-CuteGPT-7b版本的基础上，KW-CuteGPT-13b的知识准确性、对复杂指令的理解、长文本理解能力、推理能力、忠实问答等能力均有提升。目前KW-CuteGPT-13b版本模型在部分测评任务中能够超越绝大多数同量级模型。
 
 ## 开放参数
+我们开源了以下版本的参数：
 
 | Huggingface                       | 描述                       |
 | --------------------------------- | -------------------------- |
@@ -19,6 +20,7 @@ CuteGPT是[复旦大学知识工场实验室](http://kw.fudan.edu.cn/)推出的�
 | Abbey4799/kw-cutegpt-13b-ift-lora | 基于lora指令微调           |
 
 ## 评测结果
+我们对部分典型的中英文数据集进行了评估，以下为CuteGPT模型在[C-eval](https://github.com/SJTU-LIT/ceval)和[XieZhi](https://github.com/MikeGu721/XiezhiBenchmark)上的评测结果。
 
 ### C-eval [[Code](https://github.com/SJTU-LIT/ceval)]
 
