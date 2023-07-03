@@ -20,7 +20,7 @@ CuteGPT是[复旦大学知识工场实验室](http://kw.fudan.edu.cn/)推出的�
 
 ## 评测结果
 
-### C-eval
+### C-eval [[Code](https://github.com/SJTU-LIT/ceval)]
 
 #### Zero-shot
 

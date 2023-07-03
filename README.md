@@ -20,7 +20,7 @@ Based on the KW-CuteGPT-7b version, KW-CuteGPT-13b has improved accuracy in know
 
 ## Evaluation
 
-### C-eval
+### C-eval [[Code](https://github.com/SJTU-LIT/ceval)]
 
 #### Zero-shot
 
