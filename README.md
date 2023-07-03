@@ -70,9 +70,8 @@ We selected a subset of typical Chinese-English datasets for evaluation, and the
 | Bloomz-mt                      | 30.8           | 30.4           |
 | GLM-130B                       | 30.7           | 30.3           |
 | LLaMA-65B                      | 29.8           | 31.7           |
-| **CuteGPT-13b-ift-lora** | **28.4** | **28.9** |
-| **CuteGPT-13b-base**     | **N/A**  | **27.6** |
 | ChatGLM-6B                     | 29.2           | 23.1           |
+| **CuteGPT-13b-ift-lora** | **28.4** | **28.9** |
 | MOSS                           | 28.4           | 24             |
 | Chinese-LLaMA-13B              | 27.5           | 27.3           |
 | Chinese-Alpaca-13B             | 24.4           | 27.1           |
