@@ -1,5 +1,3 @@
-# CuteGPT
-
 <p align="center">
     <br>
     <img src="banner.png" width="500"/>
