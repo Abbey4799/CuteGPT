@@ -150,6 +150,7 @@ def generate_prompt(query, history, input=None):
 ```
 
 * Inference Code
+
   You can run the following script directly for inference:
   * Full-finetuning version
     ```bash
@@ -199,7 +200,7 @@ python code/convert_data.py \
     --out_data_path data/test/
 ```
 
-- Note that if you continue fine-tuning based on `XuYipei/kw-cutegpt-13b-ift`, you need to replace the tokenizer with `XuYipei/kw-cutegpt-13b-ift` because the latter has added special tokens.
+**Note**: If you continue fine-tuning based on `XuYipei/kw-cutegpt-13b-ift`, you need to replace the tokenizer with `XuYipei/kw-cutegpt-13b-ift` because the latter has added special tokens.
 
 
 Train the model
@@ -225,7 +226,7 @@ Parameter Explanation
 * `use_lora`: Whether to use LoRA fine-tuning. If set to false, it defaults to full fine-tuning.
 * `load_lora`: Whether to load the Lora checkpoint for continued training. If `load_lora==True`, define the path to the Lora checkpoint in `load_lora_path`.
 
-Note: If performing full fine-tuning, we have added a special token (<end>) to help the model better learn the conversational patterns of multi-turn dialogue.
+**Note**: If performing full fine-tuning, we have added a special token (<end>) to help the model better learn the conversational patterns of multi-turn dialogue.
 
 Refer to `code/config.py` for specific deepspeed parameters (e.g., learning rate, batch size) and Lora parameters (e.g., Lora rank).
 

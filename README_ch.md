@@ -150,6 +150,7 @@ def generate_prompt(query, history, input=None):
 ```
 
 - 推理代码
+
   可以直接运行以下脚本进行推理，需要两张3090显卡进行推理
   - 全量微调版本
     ```bash
@@ -199,7 +200,7 @@ python code/convert_data.py \
 	--out_data_path data/test/
 ```
 
-- 注意，如果是基于`XuYipei/kw-cutegpt-13b-ift`继续微调，需要将`tokenizer`换作`XuYipei/kw-cutegpt-13b-ift`，因为后者加了special token
+**注意**：如果是基于`XuYipei/kw-cutegpt-13b-ift`继续微调，需要将`tokenizer`换作`XuYipei/kw-cutegpt-13b-ift`，因为后者加了special token
 
 训练模型
 
@@ -224,7 +225,7 @@ CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 deepspeed --master_port 12932 code/finetune
 - `use_lora`：是否采用lora微调，如果为否默认全量微调
 - `load_lora`：是否读取lora checkpoint继续训练。如果 `load_lora==True`，在 `load_lora_path`中定义lora checkpoint的路径
 
-注意：如果是全量微调，我们增加了special token（<end>）帮助模型更好地学习多轮对话的范式
+**注意**：如果是全量微调，我们增加了special token（<end>）帮助模型更好地学习多轮对话的范式
 
 具体的 deepspeed 参数（例如 ` learning rate`、` batch size`）以及   `lora `参数（例如 ` lora rank`）见  ` code/config.py`
 
