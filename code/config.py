@@ -2,7 +2,7 @@
 from peft import LoraConfig
 
 
-DS_CONFIG = {
+DS_CONFIG_lora = {
     "bf16": {
         "enabled": True,
     },
@@ -38,6 +38,46 @@ DS_CONFIG = {
     "gradient_accumulation_steps": 8,
     "train_micro_batch_size_per_gpu": 2,
     "wall_clock_breakdown": False
+}
+
+
+DS_CONFIG_ft = {
+    "bf16": {
+        "enabled": True,
+    },
+    "optimizer": {
+        "type": "AdamW",
+        "params": {
+            "lr": 3e-5,
+            "betas": [0.98, 0.999],
+            "eps": 1e-9
+        }
+    },
+    "scheduler": {
+        "type": "WarmupLR",
+        "params": {
+            "warmup_min_lr": 2e-5,
+            "warmup_max_lr": 5e-5,
+            "warmup_num_steps": 300
+        }
+    },
+    "zero_optimization": {
+            "stage": 1,
+            "allgather_partitions": True,
+            "allgather_bucket_size": 2e8,
+            "overlap_comm": True,
+            "reduce_scatter": True,
+            "reduce_bucket_size": 2e8,
+            "contiguous_gradients": True,
+            "stage3_gather_16bit_weights_on_model_save": True,
+            "offload_optimizer": {
+                "device": "cpu"
+            }
+        },
+        "gradient_accumulation_steps": 16,
+        "train_micro_batch_size_per_gpu": 1,
+        "wall_clock_breakdown": False,
+        "steps_per_print": 50
 }
 
 LORA_R = 8

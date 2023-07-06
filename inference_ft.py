@@ -11,17 +11,15 @@ def generate_prompt(query, history, input=None):
     prompt += "问：{}\n答：".format(query)
     return prompt
 
-model_name = "XuYipei/kw-cutegpt-13b-base"
-LORA_WEIGHTS = "Abbey4799/kw-cutegpt-13b-ift-lora"
-tokenizer = LlamaTokenizer.from_pretrained(LORA_WEIGHTS)
+model_name = "XuYipei/kw-cutegpt-13b-ift"
+tokenizer = LlamaTokenizer.from_pretrained(model_name)
+print('additional_special_token:', tokenizer.additional_special_tokens)
 model = LlamaForCausalLM.from_pretrained(
     model_name,
-    load_in_8bit=True,
     torch_dtype=torch.float16,
     device_map="auto",
 )
 model.eval()
-model = PeftModel.from_pretrained(model, LORA_WEIGHTS)
 device = torch.device("cuda")
 
 history = []
@@ -42,7 +40,7 @@ for query in queries:
                 repetition_penalty=1.1,
                 max_new_tokens = 256,
                 early_stopping = True,
-                eos_token_id = tokenizer.convert_tokens_to_ids('<s>'),
+                eos_token_id = tokenizer.convert_tokens_to_ids('<end>'),
                 pad_token_id = tokenizer.eos_token_id,
                 min_length = input_ids.shape[1] + 1
         )

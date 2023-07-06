@@ -144,66 +144,21 @@ def generate_prompt(query, history, input=None):
     prompt = overall_instruction
     for i, (old_query, response) in enumerate(history):
         # Multi-turn dialogue needs to be consistent with training
-        prompt += "Q: {}\nA: {}\n".format(old_query, response)
-    prompt += "Q: {}\nA: ".format(query)
+        prompt += "问: {}\n答: {}\n".format(old_query, response)
+    prompt += "问: {}\n答: ".format(query)
     return prompt
 ```
 
-* Load model, tokenizer, here we use lora version of checkpoint, 8bit quantization (The performance of the model will experience some degradation after quantization.)
-
-```python
-model_name = "XuYipei/kw-cutegpt-13b-base"
-LORA_WEIGHTS = "Abbey4799/kw-cutegpt-13b-ift-lora"
-tokenizer = LlamaTokenizer.from_pretrained(LORA_WEIGHTS)
-model = LlamaForCausalLM.from_pretrained(
-    model_name,
-    load_in_8bit=True,
-    torch_dtype=torch.float16,
-    device_map="auto",
-)
-model.eval()
-model = PeftModel.from_pretrained(model, LORA_WEIGHTS)
-device = torch.device("cuda")
-```
-
-* Inference
-
-```python
-history = []
-queries = ['请推荐五本名著，依次列出作品名、作者','再来三本呢？']
-memory_limit = 3 # the number of (query, response) to remember
-for query in queries:
-    prompt = generate_prompt(query, history)
-    print(prompt)
-
-    input_ids = tokenizer(prompt, return_tensors="pt", padding=False, truncation=False, add_special_tokens=False)
-    input_ids = input_ids["input_ids"].to(device)
-
-    with torch.no_grad():
-        outputs=model.generate(
-                input_ids=input_ids,
-                top_p=0.8,
-                top_k=50,
-                repetition_penalty=1.1,
-                max_new_tokens = 256,
-                early_stopping = True,
-                eos_token_id = tokenizer.convert_tokens_to_ids('<s>'),
-                pad_token_id = tokenizer.eos_token_id,
-                min_length = input_ids.shape[1] + 1
-        )
-    s = outputs[0][input_ids.shape[1]:]
-    response=tokenizer.decode(s)
-    response = response.replace('<s>', '').replace('<end>', '').replace('</s>', '')
-    print(response)
-    history.append((query, response))
-    history = history[-memory_limit:]
-```
-
-You can run the following script directly for inference:
-
-```bash
-CUDA_VISIBLE_DEVICES=0 python inference.py
-```
+* Inference Code
+  You can run the following script directly for inference:
+  * Full-finetuning version
+    ```bash
+    CUDA_VISIBLE_DEVICES=0,1 python inference_ft.py
+    ```
+  * LoRA version
+    ```bash
+    CUDA_VISIBLE_DEVICES=0,1 python inference_lora.py
+    ```
 
 ## Fine-tuning
 
@@ -239,10 +194,13 @@ Preprocess the data, concatenate it into the format of multi-turn dialogues, and
 
 ```bash
 python code/convert_data.py \
-    --tokenizer Abbey4799/kw-cutegpt-13b-ift-lora \
+    --tokenizer XuYipei/kw-cutegpt-13b-base \
     --max_length 2048 \
     --out_data_path data/test/
 ```
+
+- Note that if you continue fine-tuning based on `XuYipei/kw-cutegpt-13b-ift`, you need to replace the tokenizer with `XuYipei/kw-cutegpt-13b-ift` because the latter has added special tokens.
+
 
 Train the model
 
@@ -263,15 +221,23 @@ Parameter Explanation
 * `model_path`: Path to the `base` model.
 * `dataset_type`: Defines the `dataset` class used for data encapsulation, defined in `code/dataset.py`.
 * `use_flash_attention`: Whether to use flash attention to speed up training and reduce GPU memory consumption.
+* `use_lora`: Whether to use LoRA fine-tuning. If set to false, it defaults to full fine-tuning.
 * `load_lora`: Whether to load the Lora checkpoint for continued training. If `load_lora==True`, define the path to the Lora checkpoint in `load_lora_path`.
+
+Note: If performing full fine-tuning, we have added a special token (<end>) to help the model better learn the conversational patterns of multi-turn dialogue.
 
 Refer to `code/config.py` for specific deepspeed parameters (e.g., learning rate, batch size) and Lora parameters (e.g., Lora rank).
 
 You can directly run the following command to start training:
+- Full-finetuning version
+    ```
+    bash finetune_ft.sh
+    ```
+- LoRA version
+    ```
+    bash finetune_lora.sh
+    ```
 
-```
-bash finetune.sh
-```
 
 ## Disclaimer
 

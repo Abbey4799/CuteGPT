@@ -138,7 +138,7 @@ import torch
 
 - 推理时的prompt模版
 
-```bash
+```python
 overall_instruction = "你是复旦大学知识工场实验室训练出来的语言模型CuteGPT。给定任务描述，请给出对应请求的回答。\n"
 def generate_prompt(query, history, input=None):
     prompt = overall_instruction
@@ -149,61 +149,16 @@ def generate_prompt(query, history, input=None):
     return prompt
 ```
 
-- 加载模型、分词器，此处采用lora版本的checkpoint、8bit量化（模型经过量化后，效果会有一定损失）。
-
-```python
-model_name = "XuYipei/kw-cutegpt-13b-base"
-LORA_WEIGHTS = "Abbey4799/kw-cutegpt-13b-ift-lora"
-tokenizer = LlamaTokenizer.from_pretrained(LORA_WEIGHTS)
-model = LlamaForCausalLM.from_pretrained(
-    model_name,
-    load_in_8bit=True,
-    torch_dtype=torch.float16,
-    device_map="auto",
-)
-model.eval()
-model = PeftModel.from_pretrained(model, LORA_WEIGHTS)
-device = torch.device("cuda")
-```
-
-- 推理
-
-```python
-history = []
-queries = ['请推荐五本名著，依次列出作品名、作者','再来三本呢？']
-memory_limit = 3 # the number of (query, response) to remember
-for query in queries:
-    prompt = generate_prompt(query, history)
-    print(prompt)
-
-    input_ids = tokenizer(prompt, return_tensors="pt", padding=False, truncation=False, add_special_tokens=False)
-    input_ids = input_ids["input_ids"].to(device)
-
-    with torch.no_grad():
-        outputs=model.generate(
-                input_ids=input_ids,
-                top_p=0.8,
-                top_k=50,
-                repetition_penalty=1.1,
-                max_new_tokens = 256,
-                early_stopping = True,
-                eos_token_id = tokenizer.convert_tokens_to_ids('<s>'),
-                pad_token_id = tokenizer.eos_token_id,
-                min_length = input_ids.shape[1] + 1
-        )
-    s = outputs[0][input_ids.shape[1]:]
-    response=tokenizer.decode(s)
-    response = response.replace('<s>', '').replace('<end>', '').replace('</s>', '')
-    print(response)
-    history.append((query, response))
-    history = history[-memory_limit:]
-```
-
-可以直接运行以下脚本进行推理：
-
-```python
-CUDA_VISIBLE_DEVICES=0 python inference.py
-```
+- 推理代码
+  可以直接运行以下脚本进行推理，需要两张3090显卡进行推理
+  - 全量微调版本
+    ```bash
+    CUDA_VISIBLE_DEVICES=0,1 python inference_ft.py
+    ```
+  - LoRA版本
+    ```bash
+    CUDA_VISIBLE_DEVICES=0,1 python inference_lora.py
+    ```
 
 ## 微调
 
@@ -239,10 +194,12 @@ print(random.sample(datas,3))
 
 ```bash
 python code/convert_data.py \
-	--tokenizer Abbey4799/kw-cutegpt-13b-ift-lora \
+	--tokenizer XuYipei/kw-cutegpt-13b-base \
 	--max_length 2048 \
 	--out_data_path data/test/
 ```
+
+- 注意，如果是基于`XuYipei/kw-cutegpt-13b-ift`继续微调，需要将`tokenizer`换作`XuYipei/kw-cutegpt-13b-ift`，因为后者加了special token
 
 训练模型
 
@@ -255,6 +212,7 @@ CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 deepspeed --master_port 12932 code/finetune
     --dataset_type DatasetIds \
     --data_path data/test/llama_ift_data_ids.pkl \
     --max_length 2048 \
+    --use_lora \
     --use_flash_attention
 ```
 
@@ -263,15 +221,22 @@ CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 deepspeed --master_port 12932 code/finetune
 - `model_path`：`base`模型的路径
 - `dataset_type`：封装数据的 `dataset`类定义，在 `code/dataset.py`中定义
 - `use_flash_attention`：是否使用flash attention加快训练、减少显存消耗
+- `use_lora`：是否采用lora微调，如果为否默认全量微调
 - `load_lora`：是否读取lora checkpoint继续训练。如果 `load_lora==True`，在 `load_lora_path`中定义lora checkpoint的路径
+
+注意：如果是全量微调，我们增加了special token（<end>）帮助模型更好地学习多轮对话的范式
 
 具体的 deepspeed 参数（例如 ` learning rate`、` batch size`）以及   `lora `参数（例如 ` lora rank`）见  ` code/config.py`
 
 可以直接运行以下指令进行训练：
-
-```
-bash finetune.sh
-```
+- 全量微调
+    ```
+    bash finetune_ft.sh
+    ```
+- LoRA微调
+    ```
+    bash finetune_lora.sh
+    ```
 
 ## 免责声明
 

@@ -19,13 +19,22 @@ from peft import (
 )
 
 import random
-from config import lora_config, DS_CONFIG
+from config import lora_config, DS_CONFIG_lora, DS_CONFIG_ft
 
 
 def replace_llama_attn_with_flash_attn():
     transformers.models.llama.modeling_llama.LlamaModel._prepare_decoder_attention_mask = flash_attn_prepare_decoder_attention_mask
     transformers.models.llama.modeling_llama.LlamaAttention.forward = flash_attn_forward
 
+
+def get_model_layers(model):
+    layers = [["", model]]
+    i = 0
+    while i < len(layers):
+        for nc, lc in layers[i][1].named_children():
+            layers.append([f"{layers[i][0]}.{nc}" if layers[i][0] else nc, lc])
+        i += 1
+    return layers
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -37,6 +46,7 @@ if __name__ == "__main__":
     parser.add_argument("--model_path",type=str,default='',help="the floader to load model")
     parser.add_argument("--max_length",type=int,default=1024,help="max token length")
     parser.add_argument("--use_flash_attention",action="store_true",help="whether to use flash attention")
+    parser.add_argument("--use_lora",action="store_true",help="Whether to use LoRa, the default is to perform full Finetune")
     parser.add_argument("--load_lora",action="store_true",help="whether load ckpts")
     parser.add_argument("--load_lora_path",type=str,default="",help="the floader to load lora ckpts(.pt)")
     parser.add_argument("--save_dir",type=str,default="ckp/",help="the floader to save ckpts(.pt)")
@@ -46,6 +56,12 @@ if __name__ == "__main__":
 
     parser = deepspeed.add_config_arguments(parser)
     args = parser.parse_args()
+
+    if args.use_lora:
+        DS_CONFIG = DS_CONFIG_lora
+    else:
+        DS_CONFIG = DS_CONFIG_ft
+    print(DS_CONFIG)
 
     random.seed(args.seed)
 
@@ -63,7 +79,11 @@ if __name__ == "__main__":
     model_name = args.model_path
     print('model_name:',model_name)
     tokenizer = LlamaTokenizer.from_pretrained(model_name)
-    print(tokenizer.additional_special_tokens)
+    if not args.use_lora:
+        st = ["<end>"]
+        tokenizer.add_special_tokens({'additional_special_tokens': tokenizer.additional_special_tokens + st})
+        print(tokenizer.additional_special_tokens)
+    print('additional_special_tokens:', tokenizer.additional_special_tokens)
 
     if 'Ids' in args.dataset_type:
         # preprocessed data
@@ -88,24 +108,33 @@ if __name__ == "__main__":
     )
 
     model = LlamaForCausalLM.from_pretrained(args.model_path, low_cpu_mem_usage=True)
-
     if args.use_flash_attention:
         print('using flash attn!!')
         replace_llama_attn_with_flash_attn()
     else:
         print('not using flash attn!!')
 
-    if args.load_lora:
-        # load lora parameter
-        print('parameter loaded!')
-        print(args.load_lora_path)
-        model = PeftModel.from_pretrained(model, args.load_lora_path, is_trainable= True)
+    if not args.use_lora:
+        model.resize_token_embeddings(len(tokenizer))
+        model_layers = get_model_layers(model)
+        for layer in model_layers:
+            if layer[0] in ['model.embed_tokens']:
+                begin_idx = tokenizer.convert_tokens_to_ids(tokenizer.additional_special_tokens[0])
+                end_idx = begin_idx + len(tokenizer.additional_special_tokens)
+                print('normalize special token...')
+                print(tokenizer.convert_tokens_to_string(tokenizer.convert_ids_to_tokens(torch.tensor([begin_idx]))))
+                print(tokenizer.convert_tokens_to_string(tokenizer.convert_ids_to_tokens(torch.tensor([end_idx - 1]))))
+                torch.nn.init.normal_(layer[1].weight.data[begin_idx:end_idx], std=1e-6)
     else:
-        # training from scratch
-        print('training from scratch')
-        model = get_peft_model(model, lora_config)
-
-    model.print_trainable_parameters()
+        if args.load_lora:
+            # load lora parameter
+            print('parameter loaded!')
+            print(args.load_lora_path)
+            model = PeftModel.from_pretrained(model, args.load_lora_path, is_trainable= True)
+        else:
+            # training from scratch
+            print('training from scratch')
+            model = get_peft_model(model, lora_config)
 
     engine, _, _, _ = deepspeed.initialize(
         config=DS_CONFIG,
@@ -113,8 +142,6 @@ if __name__ == "__main__":
         model_parameters=model.parameters(),
     )
     print("model loaded.")
-
-
 
     args.max_steps = args.max_epoches * len(train_dataloader)
 
@@ -144,10 +171,11 @@ if __name__ == "__main__":
             if global_step % args.save_steps == 0:
                 dist.barrier()
                 if torch.distributed.get_rank() == 0:
-                    model.save_pretrained(f"{args.save_dir + args.save_name + '/' + args.save_name}_{global_step}")
-                    model.save_pretrained(f"{args.save_dir + args.save_name + '/' + args.save_name}_latest")
+                    if args.use_lora:
+                        model.save_pretrained(f"{args.save_dir + args.save_name + '/' + args.save_name}_{global_step}")
+                    else:
+                        engine.save_pretrained(f"{args.save_dir + args.save_name + '/' + args.save_name}_{global_step}")
                     tokenizer.save_pretrained(f"{args.save_dir + args.save_name + '/' + args.save_name}_{global_step}")
-                    tokenizer.save_pretrained(f"{args.save_dir + args.save_name + '/' + args.save_name}_latest")
                 dist.barrier()
 
             if torch.distributed.get_rank() == 0:
@@ -160,7 +188,10 @@ if __name__ == "__main__":
 
         dist.barrier()
         if torch.distributed.get_rank() == 0:
-            model.save_pretrained(f"{args.save_dir + args.save_name + '/' + args.save_name}_epoch{epoch}")
+            if args.use_lora:
+                model.save_pretrained(f"{args.save_dir + args.save_name + '/' + args.save_name}_epoch{epoch}")
+            else:
+                engine.save_pretrained(f"{args.save_dir + args.save_name + '/' + args.save_name}_epoch{epoch}")
             tokenizer.save_pretrained(f"{args.save_dir + args.save_name + '/' + args.save_name}_epoch{epoch}")
         dist.barrier()
 

@@ -7,7 +7,7 @@ from utils import get_multiround_data
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--tokenizer", type=str, default="Abbey4799/kw-cutegpt-13b-ift-lora")
+    parser.add_argument("--tokenizer", type=str, default="XuYipei/kw-cutegpt-13b-base")
     parser.add_argument("--max_length",type=int,default=2048,help="max token length")
     parser.add_argument("--out_data_path",type=str,default='data/test/',help="the floader to load raw data and save preprocessed data")
     args = parser.parse_args()
