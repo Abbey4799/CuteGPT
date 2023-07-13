@@ -189,6 +189,8 @@ print(random.sample(datas,3))
    'output': '要训练一个能...'}]]
 ```
 
+我们设计了基于td-idf和instruction、output长度的采样策略，提高了指令微调数据的多样性。
+
 ### 微调代码
 
 预处理数据，将数据拼接成多轮对话的格式，并编码得到 `input_ids`，存储下来

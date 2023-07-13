@@ -189,6 +189,8 @@ The data is stored in a two-dimensional array, where `len(datas)` represents the
    'output': '要训练一个能...'}]]
 ```
 
+We designed sampling strategies based on td-idf and instruction, output length, which improved the diversity of the instruction fine-tuning data.
+
 ### Fine-tuning Code
 
 Preprocess the data, concatenate it into the format of multi-turn dialogues, and encode it to obtain `input_ids`, then save it.
