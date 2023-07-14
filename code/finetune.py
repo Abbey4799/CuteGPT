@@ -123,7 +123,7 @@ if __name__ == "__main__":
                 end_idx = begin_idx + len(tokenizer.additional_special_tokens)
                 print('normalize special token...')
                 print(tokenizer.convert_tokens_to_string(tokenizer.convert_ids_to_tokens(torch.tensor([begin_idx]))))
-                print(tokenizer.convert_tokens_to_string(tokenizer.convert_ids_to_tokens(torch.tensor([end_idx - 1]))))
+                # print(tokenizer.convert_tokens_to_string(tokenizer.convert_ids_to_tokens(torch.tensor([end_idx - 1]))))
                 torch.nn.init.normal_(layer[1].weight.data[begin_idx:end_idx], std=1e-6)
     else:
         if args.load_lora:
