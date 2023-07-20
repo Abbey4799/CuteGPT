@@ -100,7 +100,7 @@ def flash_attn_prepare_decoder_attention_mask(self, attention_mask, input_shape,
     # [bsz, seq_len]
     return attention_mask
 
-def get_multiround_data(saved_dir, rank, max_training_samples = 1000):
+def get_multiround_data(saved_dir, rank, max_training_samples = -1):
     """
     This function retrieves multi-round conversation data from a saved directory.
     The resulting dialogues are stored in a list.

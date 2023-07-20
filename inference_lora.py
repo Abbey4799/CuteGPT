@@ -7,8 +7,8 @@ def generate_prompt(query, history, input=None):
     prompt = overall_instruction
     for i, (old_query, response) in enumerate(history):
         # 多轮对话需要跟训练时保持一致
-        prompt += "问：{}\n答：{}\n".format(old_query, response)
-    prompt += "问：{}\n答：".format(query)
+        prompt += "问：{}\n答：\n{}\n".format(old_query, response)
+    prompt += "问：{}\n答：\n".format(query)
     return prompt
 
 model_name = "XuYipei/kw-cutegpt-13b-base"

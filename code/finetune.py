@@ -10,6 +10,7 @@ from torch.utils.data.distributed import DistributedSampler
 from transformers import LlamaForCausalLM, LlamaTokenizer
 import transformers
 import pickle
+import pdb
 
 from dataset import GPT2Dataset_onlyres, BertDataset_onlyres, DatasetIds
 from utils import flash_attn_forward, flash_attn_prepare_decoder_attention_mask, get_multiround_data
@@ -155,6 +156,7 @@ if __name__ == "__main__":
             pbar = tqdm(range(len(train_dataloader)))
 
         for batch in train_dataloader:
+            pdb.set_trace()
             loss = engine(
                 input_ids = batch[0].to(device),
                 labels = batch[1].to(device),
