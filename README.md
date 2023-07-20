@@ -143,9 +143,8 @@ overall_instruction = "你是复旦大学知识工场实验室训练出来的语
 def generate_prompt(query, history, input=None):
     prompt = overall_instruction
     for i, (old_query, response) in enumerate(history):
-        # Multi-turn dialogue needs to be consistent with training
-        prompt += "问: {}\n答: {}\n".format(old_query, response)
-    prompt += "问: {}\n答: ".format(query)
+        prompt += "问：{}\n答：\n{}\n".format(old_query, response)
+    prompt += "问：{}\n答：\n".format(query)
     return prompt
 ```
 
