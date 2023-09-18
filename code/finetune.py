@@ -166,7 +166,6 @@ if __name__ == "__main__":
 
             engine.backward(loss)
             engine.step()
-            engine.zero_grad()
 
             global_step += 1
             losses.append(loss.item())
