@@ -11,6 +11,7 @@ from transformers import LlamaForCausalLM, LlamaTokenizer
 import transformers
 import pickle
 import pdb
+import json
 
 from dataset import GPT2Dataset_onlyres, BertDataset_onlyres, DatasetIds
 from utils import flash_attn_forward, flash_attn_prepare_decoder_attention_mask, get_multiround_data
@@ -75,7 +76,7 @@ if __name__ == "__main__":
         torch.cuda.set_device(args.local_rank)
         device = torch.device("cuda", args.local_rank)
         torch.distributed.init_process_group(backend='nccl')
-    deepspeed.init_distributed()
+
 
     model_name = args.model_path
     print('model_name:',model_name)
@@ -142,12 +143,15 @@ if __name__ == "__main__":
         model=model, 
         model_parameters=model.parameters(),
     )
+    engine.train()
+    
+    
     print("model loaded.")
+    print(engine.module.config.to_dict())
 
     args.max_steps = args.max_epoches * len(train_dataloader)
 
     global_step = 0
-    engine.train()
     for epoch in range(args.max_epoches):
         losses = []
         if torch.distributed.get_rank() != -1:
@@ -156,7 +160,6 @@ if __name__ == "__main__":
             pbar = tqdm(range(len(train_dataloader)))
 
         for batch in train_dataloader:
-            pdb.set_trace()
             loss = engine(
                 input_ids = batch[0].to(device),
                 labels = batch[1].to(device),
@@ -170,14 +173,18 @@ if __name__ == "__main__":
             global_step += 1
             losses.append(loss.item())
             if global_step % args.save_steps == 0:
-                dist.barrier()
                 if torch.distributed.get_rank() == 0:
-                    if args.use_lora:
-                        model.save_pretrained(f"{args.save_dir + args.save_name + '/' + args.save_name}_{global_step}")
-                    else:
-                        engine.save_pretrained(f"{args.save_dir + args.save_name + '/' + args.save_name}_{global_step}")
                     tokenizer.save_pretrained(f"{args.save_dir + args.save_name + '/' + args.save_name}_{global_step}")
-                dist.barrier()
+                    if args.use_lora:
+                        dist.barrier()
+                        model.save_pretrained(f"{args.save_dir + args.save_name + '/' + args.save_name}_{global_step}")
+                        dist.barrier()
+                    else:
+                        engine.save_16bit_model(f"{args.save_dir + args.save_name + '/' + args.save_name}_{global_step}")
+                        os.makedirs(f"{args.save_dir + args.save_name + '/' + args.save_name}_{global_step}", exist_ok=True)
+                        with open(f"{args.save_dir + args.save_name + '/' + args.save_name}_{global_step}/config.json",'w') as f:
+                            json.dump(engine.module.config.to_dict(), f)
+
 
             if torch.distributed.get_rank() == 0:
                 pbar.update()
@@ -186,15 +193,17 @@ if __name__ == "__main__":
             if global_step >= args.max_steps:
                 break
         
-
-        dist.barrier()
         if torch.distributed.get_rank() == 0:
-            if args.use_lora:
-                model.save_pretrained(f"{args.save_dir + args.save_name + '/' + args.save_name}_epoch{epoch}")
-            else:
-                engine.save_pretrained(f"{args.save_dir + args.save_name + '/' + args.save_name}_epoch{epoch}")
             tokenizer.save_pretrained(f"{args.save_dir + args.save_name + '/' + args.save_name}_epoch{epoch}")
-        dist.barrier()
+            if args.use_lora:
+                dist.barrier()
+                model.save_pretrained(f"{args.save_dir + args.save_name + '/' + args.save_name}_epoch{epoch}")
+                dist.barrier()
+            else:
+                engine.save_16bit_model(f"{args.save_dir + args.save_name + '/' + args.save_name}_epoch{epoch}")
+                os.makedirs(f"{args.save_dir + args.save_name + '/' + args.save_name}_epoch{epoch}", exist_ok=True)
+                with open(f"{args.save_dir + args.save_name + '/' + args.save_name}_epoch{epoch}/config.json",'w') as f:
+                    json.dump(engine.module.config.to_dict(), f)
 
         if torch.distributed.get_rank() == 0:
             pbar.close()
